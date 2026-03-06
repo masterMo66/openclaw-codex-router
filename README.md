@@ -1,6 +1,38 @@
-# OpenClaw Codex Router
+<h1 align="center">OpenClaw Codex Router</h1>
 
-A lightweight OpenClaw plugin that adds reusable Telegram commands for Codex sessions:
+<p align="center">
+  <strong>Reuse one persistent Codex session from Telegram, without touching OpenClaw core.</strong>
+</p>
+
+<p align="center">
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-1677ff?style=for-the-badge" alt="MIT License"></a>
+  <a href="./openclaw.plugin.json"><img src="https://img.shields.io/badge/OpenClaw-Plugin-111827?style=for-the-badge" alt="OpenClaw Plugin"></a>
+  <a href="./scripts/install.sh"><img src="https://img.shields.io/badge/install-one%20command-16a34a?style=for-the-badge" alt="One-command install"></a>
+</p>
+
+<p align="center">
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="./README.zh-CN.md">中文</a> ·
+  <a href="#what-you-get">What You Get</a> ·
+  <a href="#limitations">Limitations</a>
+</p>
+
+---
+
+## Why This Exists
+
+If you already use OpenClaw through Telegram, the problem usually is not ACP itself. It is the operator experience.
+
+Typical pain points look like this:
+
+| Pain Point | What Actually Happens |
+| --- | --- |
+| Codex is technically available | You still need low-level ACP commands to get real work done |
+| Telegram feels like the natural UI | But normal Telegram messages cannot bind directly into ACP sub-sessions |
+| `/acp spawn`, `/focus`, session keys all exist | Daily use becomes runtime bookkeeping instead of coding |
+| You want a stable command surface | But end up remembering implementation details instead of user workflows |
+
+This plugin turns that into a simpler model:
 
 - `/codex`
 - `/codex <task>`
@@ -9,46 +41,79 @@ A lightweight OpenClaw plugin that adds reusable Telegram commands for Codex ses
 - `/backclaw`
 - `/backclaw <minutes>`
 
-It is designed for the current OpenClaw Telegram limitation:
+The result is practical session reuse for Telegram, while staying inside OpenClaw's current plugin model.
 
-- Telegram cannot bind normal messages directly into ACP sub-sessions.
-- This plugin solves that by reusing one persistent `acpx codex` session per Telegram chat.
-- You keep using `/codex <task>` while the session context is preserved.
+## What You Get
 
-## What It Does
+- One persistent Codex session per Telegram chat
+- Session reuse across repeated `/codex <task>` calls
+- Configurable idle TTL after `/backclaw`
+- Status output for session lifecycle and expiry
+- Simple install without modifying OpenClaw core
 
-- Creates one Codex session per Telegram chat.
-- Reuses that session across `/codex <task>` calls.
-- Lets you pause usage with `/backclaw`.
-- Keeps the session alive for a configurable TTL.
-- Shows local Beijing time in `/codex_status`.
+## Quick Start
 
-## Requirements
-
-- OpenClaw installed and working
-- Telegram channel already connected in OpenClaw
-- ACPX backend enabled
-- `codex` working through OpenClaw ACPX
-
-## Quick Install
-
-Clone the repo, then run:
+Clone the repository and run:
 
 ```bash
 ./scripts/install.sh
 ```
 
-That script will:
+The installer will:
 
-1. Check `openclaw`
-2. Install the plugin into OpenClaw from the current directory
+1. Detect `openclaw`
+2. Install this repository as a linked OpenClaw plugin
 3. Enable the plugin
-4. Set default config if missing
+4. Set default plugin config if missing
 5. Restart the OpenClaw gateway
 
-## Default Config
+After that, use these commands in Telegram:
 
-The installer writes this plugin config if it does not already exist:
+```text
+/codex
+/codex 列出当前 workspace 顶层文件
+/codex_status
+/backclaw
+/backclaw 1
+/backclaw 0
+```
+
+## Requirements
+
+- OpenClaw is already installed and working
+- Telegram is already connected to OpenClaw
+- ACPX backend is enabled
+- Codex can already run through your OpenClaw ACP setup
+
+## How It Works
+
+This plugin does not replace OpenClaw routing. It wraps it.
+
+- Each Telegram chat maps to one stable Codex session name
+- `/codex` creates or reuses that session
+- `/codex <task>` runs work inside the same persistent session
+- `/backclaw` marks the session for expiry instead of forcing immediate cleanup
+- `/backclaw 0` closes it immediately
+- `/codex_status` shows current state and expiry
+
+## Session Reuse Rules
+
+The same session is reused until one of these happens:
+
+- `/codex_reset`
+- `/backclaw 0`
+- idle TTL expires after `/backclaw <minutes>`
+- the underlying ACPX session is no longer available
+
+Default idle TTL:
+
+- `10` minutes
+
+You can override it in:
+
+- `~/.openclaw/openclaw.json`
+
+Example:
 
 ```json
 {
@@ -66,71 +131,24 @@ The installer writes this plugin config if it does not already exist:
 }
 ```
 
-You can later change `idleTtlMinutes` in `~/.openclaw/openclaw.json`.
+## Limitations
 
-## Usage
+This project deliberately works within current OpenClaw Telegram constraints.
 
-Prepare or reuse the chat session:
-
-```text
-/codex
-```
-
-Run a task in the persistent Codex session:
-
-```text
-/codex 列出当前 workspace 顶层文件
-```
-
-Pause usage and keep the session for 10 minutes:
-
-```text
-/backclaw
-```
-
-Pause usage and keep the session for 1 minute:
-
-```text
-/backclaw 1
-```
-
-Close immediately:
-
-```text
-/backclaw 0
-```
-
-Check status:
-
-```text
-/codex_status
-```
-
-## How Session Reuse Works
-
-- One Telegram private chat maps to one Codex session name.
-- The session is reused until one of these happens:
-  - `/backclaw 0`
-  - `/codex_reset`
-  - TTL expires after `/backclaw <minutes>`
-  - the underlying ACPX session is gone
-
-## Known Limitation
-
-This plugin does not turn Telegram into a full live Codex chat mode.
-
-OpenClaw Telegram currently does not expose:
-
-- ACP thread binding for Telegram
-- a plugin hook to reroute every normal Telegram message into a sub-session
-
-So the supported UX is:
+What it supports well:
 
 - `/codex <task>` with persistent session reuse
 
-Not:
+What it does not claim to support:
 
-- `/codex` then all normal messages go to Codex automatically
+- entering a true Telegram-wide Codex mode where every normal message is automatically routed into the Codex sub-session
+
+Why:
+
+- OpenClaw Telegram does not currently expose ACP thread binding for Telegram
+- OpenClaw plugins do not currently expose a general hook to reroute all normal Telegram messages into a sub-session
+
+So this repository optimizes for the best workflow that is actually stable today.
 
 ## Uninstall
 
@@ -140,9 +158,13 @@ Not:
 
 ## Repository Layout
 
-- `plugin/index.js`: production plugin
-- `openclaw.plugin.json`: plugin manifest
-- `scripts/install.sh`: local installer
-- `scripts/uninstall.sh`: local uninstaller
+- [plugin/index.js](./plugin/index.js): production plugin
+- [openclaw.plugin.json](./openclaw.plugin.json): plugin manifest
+- [scripts/install.sh](./scripts/install.sh): installer
+- [scripts/uninstall.sh](./scripts/uninstall.sh): uninstaller
 
-The `src/` tree contains earlier scaffold work and can be ignored if you only want the plugin.
+The `src/` directory contains earlier scaffold work and is not required for normal plugin use.
+
+## License
+
+[MIT](./LICENSE)
