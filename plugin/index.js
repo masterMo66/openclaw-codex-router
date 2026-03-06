@@ -12,6 +12,7 @@ const DEFAULT_AGENT_ID = "codex";
 const DEFAULT_TIMEOUT_MS = 15 * 60 * 1000;
 const DEFAULT_IDLE_TTL_MINUTES = 10;
 const DISPLAY_TIME_ZONE = "Asia/Shanghai";
+const DISPLAY_TIME_ZONE_LABEL = "北京时间";
 
 let openClawBinPromise;
 let acpxBinPromise;
@@ -141,7 +142,6 @@ function formatLocalTime(valueMs) {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
     hour12: false,
   }).format(new Date(valueMs));
 }
@@ -150,14 +150,14 @@ function formatRemainingMs(valueMs) {
   const diff = Math.max(0, Math.round((valueMs - Date.now()) / 1000));
   const minutes = Math.floor(diff / 60);
   const seconds = diff % 60;
-  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  if (minutes > 0) return seconds === 0 ? `${minutes}m` : `${minutes}m`;
   return `${seconds}s`;
 }
 
 function formatTimestampString(value) {
   const ts = Date.parse(String(value ?? ""));
   if (!Number.isFinite(ts)) return String(value ?? "");
-  return `${formatLocalTime(ts)} (${DISPLAY_TIME_ZONE})`;
+  return `${formatLocalTime(ts)} (${DISPLAY_TIME_ZONE_LABEL})`;
 }
 
 function localizeSessionDetails(details) {
@@ -497,7 +497,7 @@ function createPlugin() {
                 pending?.closeAfterMs ? "mode: claw" : "mode: codex",
                 `session: ${sessionName}`,
                 `cwd: ${cwd}`,
-                pending?.closeAfterMs ? `autoCloseAt: ${formatLocalTime(pending.closeAfterMs)} (${DISPLAY_TIME_ZONE})` : null,
+                pending?.closeAfterMs ? `autoCloseAt: ${formatLocalTime(pending.closeAfterMs)} (${DISPLAY_TIME_ZONE_LABEL})` : null,
                 pending?.closeAfterMs ? `remaining: ${formatRemainingMs(pending.closeAfterMs)}` : null,
                 localizedDetails,
               ]
