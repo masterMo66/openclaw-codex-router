@@ -1,0 +1,36 @@
+{
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
+      "allowedUsers": ["YOUR_TELEGRAM_USER_ID"]
+    }
+  },
+  "agents": {
+    "list": [
+      {
+        "id": "main",
+        "runtime": "native",
+        "agentDir": "/path/to/openclaw-codex-router/agents/main"
+      },
+      {
+        "id": "codex",
+        "runtime": "acp",
+        "agentDir": "/path/to/openclaw-codex-router/agents/codex",
+        "acp": {
+          "agentId": "codex"
+        }
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "channel": "telegram",
+      "agentId": "main"
+    }
+  ],
+  "acp": {
+    "enabled": true,
+    "defaultTimeoutMs": 1800000
+  }
+}

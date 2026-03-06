@@ -1,0 +1,42 @@
+{
+  "name": "openclaw-codex-router",
+  "version": "0.1.0",
+  "private": false,
+  "description": "OpenClaw plugin for reusable Telegram Codex sessions via ACPX",
+  "type": "module",
+  "license": "MIT",
+  "openclaw": {
+    "extensions": [
+      "./plugin/index.js"
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc --noEmit -p tsconfig.json",
+    "start": "node dist/server.js",
+    "install:openclaw": "./scripts/install.sh",
+    "uninstall:openclaw": "./scripts/uninstall.sh"
+  },
+  "files": [
+    "plugin",
+    "openclaw.plugin.json",
+    "README.md",
+    "LICENSE",
+    "scripts"
+  ],
+  "keywords": [
+    "openclaw",
+    "telegram",
+    "codex",
+    "acpx",
+    "plugin"
+  ],
+  "dependencies": {
+    "better-sqlite3": "^11.8.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.2"
+  }
+}

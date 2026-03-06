@@ -1,0 +1,21 @@
+{
+  "id": "codex-router",
+  "name": "Codex Router",
+  "description": "Adds /codex and /backclaw commands for Telegram ACP session routing.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "agentId": {
+        "type": "string"
+      },
+      "defaultCwd": {
+        "type": "string"
+      },
+      "idleTtlMinutes": {
+        "type": "number",
+        "minimum": 0
+      }
+    }
+  }
+}
